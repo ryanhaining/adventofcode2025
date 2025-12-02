@@ -1,11 +1,12 @@
+import math
 import sys
 
 
 def sum_invalid_ids(low: int, high: int) -> int:
     return sum(
-        int(s)
-        for s in (str(n) for n in range(low, high + 1))
-        if s[: len(s) // 2] == s[len(s) // 2 :]
+        n
+        for n in range(low, high + 1)
+        if n // (10**(exp := math.ceil(math.log10(n))//2)) == n % (10**exp)
     )
 
 
