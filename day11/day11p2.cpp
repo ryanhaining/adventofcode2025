@@ -1,5 +1,4 @@
 #include <iostream>
-#include <limits>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
@@ -9,9 +8,6 @@ constexpr std::string START = "svr";
 constexpr std::string GOAL = "out";
 constexpr std::string FFT = "fft";
 constexpr std::string DAC = "dac";
-struct Node {
-  std::vector<std::string> outgoing;
-};
 
 struct State {
   std::string label{};
@@ -28,7 +24,8 @@ struct StateHash {
   }
 };
 
-long find_paths_impl(std::unordered_map<std::string, Node>& nodes,
+long find_paths_impl(
+    std::unordered_map<std::string, std::vector<std::string>>& nodes,
     std::unordered_map<State, long, StateHash>& cache, const State& state) {
   auto& current = nodes[state.label];
   if (state.label == GOAL) {
@@ -38,7 +35,7 @@ long find_paths_impl(std::unordered_map<std::string, Node>& nodes,
     return it->second;
   }
   long paths_count{};
-  for (const auto& next : current.outgoing) {
+  for (const auto& next : current) {
     paths_count += find_paths_impl(nodes, cache,
         State{next, state.visited_dac || next == DAC,
             state.visited_fft || next == FFT});
@@ -47,22 +44,23 @@ long find_paths_impl(std::unordered_map<std::string, Node>& nodes,
   return paths_count;
 }
 
-long find_paths(std::unordered_map<std::string, Node>& nodes) {
+long find_paths(
+    std::unordered_map<std::string, std::vector<std::string>>& nodes) {
   std::unordered_map<State, long, StateHash> cache;
   return find_paths_impl(nodes, cache, State{START, false, false});
 }
 
-std::unordered_map<std::string, Node> read_input() {
-  std::unordered_map<std::string, Node> nodes;
+std::unordered_map<std::string, std::vector<std::string>> read_input() {
+  std::unordered_map<std::string, std::vector<std::string>> nodes;
   std::string line{};
   while (std::getline(std::cin, line)) {
     std::istringstream in{line};
     std::string label{};
     in >> label;
     label.pop_back();  // drop the ':'
-    auto& node = nodes[label];
+    auto& current = nodes[label];
     while (in >> label) {
-      node.outgoing.push_back(label);
+      current.push_back(label);
     }
   }
   return nodes;
